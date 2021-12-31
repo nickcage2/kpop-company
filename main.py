@@ -81,6 +81,18 @@ async def startup(ctx):
     
     await ctx.send(embed = create_embed('Taking Off', 'Quite the entrepreneur, you are! Welcome to your new entertainment company, CEO ' + ctx.author.name + '.'))
 
+def make_trans(addorsub, money, author): 
+  # is either '+' or '-' 
+  #money is integer 
+  #author is ctx.author.name
+  recent = companies.find_one({'ceo': author})['recent_trans']
+
+  recent.insert(0, addorsub + ' ' + str(money))
+
+  query = {'ceo': author}
+  update = {'$set': {'recent_trans': recent}}
+  companies.update_one(query, update)
+
 @client.command()
 async def free(ctx):
   bucks = companies.find_one({'ceo': ctx.author.name})['money']
@@ -92,14 +104,7 @@ async def free(ctx):
   update = {'$set': {'money': bucks}}
   companies.update_one(query, update)
 
-  #wouldn't let me put ctx in a function outside of command
-  recent = companies.find_one({'ceo': ctx.author.name})['recent_trans']
-
-  recent.insert(0, '+ ' + str(dollars))
-
-  query = {'ceo': ctx.author.name}
-  update = {'$set': {'recent_trans': recent}}
-  companies.update_one(query, update)
+  make_trans('+', dollars, ctx.author.name)
 
   await ctx.send(embed = create_embed('Good in the World','Someone gave you some K-Bucks out of the kindness in their heart.', [{'name': 'Added to Account:', 'value': str(dollars), 'inline': True}]))
 
