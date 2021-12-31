@@ -16,15 +16,6 @@ except Exception:
   print('Can\'t connect to DB')
 companies = db.companies
 
-'''company = {
-  'ceo': ctx.author.name,
-  'money': 0,
-  'idols': [],
-  'trainees': []
-}
-
-company_id = companies.insert_one(company).inserted_id'''
-
 client = commands.Bot(command_prefix = '?')
 
 idols = []
@@ -48,10 +39,11 @@ async def on_ready():
   print('Bot is online.')
   print('--------------')
   
-def create_embed(title, desc, fields = []): 
+def create_embed(title, desc, display_name, avatar_url, fields = []): 
   #[{name :, value:, inline: True},{},{},etc]
-  embed = discord.Embed(title=title, description=desc,color=0xFF9C9C)
- 
+  #ctx.author.display_name, ctx.author.avatar_url,
+  embed = discord.Embed(title=title, description=desc,color=0xFF9C9C).set_author(name=display_name, icon_url=avatar_url)
+
   for field in fields:
     embed.add_field(
       name = field['name'],
@@ -59,27 +51,6 @@ def create_embed(title, desc, fields = []):
       inline = field['inline'])
 
   return embed
-
-@client.command()
-async def startup(ctx):
-    
-  try:
-    personsCompany = companies.find_one({'ceo': ctx.author.name})
-    if ctx.author.name in personsCompany.values():
-      await ctx.send(embed = create_embed('No Monopolies', 'You already own a company.'))
-      return
-      
-  except:
-    company = {
-      'ceo': ctx.author.name,
-      'money': 0,
-      'trainees': [],
-      'recent_trans': []
-    }
-
-    companies.insert_one(company).inserted_id
-    
-    await ctx.send(embed = create_embed('Taking Off', 'Quite the entrepreneur, you are! Welcome to your new entertainment company, CEO ' + ctx.author.name + '.'))
 
 def make_trans(addorsub, money, author): 
   # is either '+' or '-' 
@@ -94,6 +65,28 @@ def make_trans(addorsub, money, author):
   companies.update_one(query, update)
 
 @client.command()
+async def startup(ctx):
+    
+  try:
+    personsCompany = companies.find_one({'ceo': ctx.author.name})
+    if ctx.author.name in personsCompany.values():
+      await ctx.send(embed = create_embed('No Monopolies', 'You already own a company.', ctx.author.display_name, ctx.author.avatar_url))
+      return
+      
+  except:
+    company = {
+      'ceo': ctx.author.name,
+      'money': 0,
+      'trainees': [],
+      'idols': [],
+      'recent_trans': []
+    }
+
+    companies.insert_one(company).inserted_id
+    
+    await ctx.send(embed = create_embed('Taking Off', 'Quite the entrepreneur, you are! Welcome to your new entertainment company, CEO ' + ctx.author.name + '.', ctx.author.display_name, ctx.author.avatar_url))
+
+@client.command()
 async def free(ctx):
   bucks = companies.find_one({'ceo': ctx.author.name})['money']
   
@@ -106,7 +99,7 @@ async def free(ctx):
 
   make_trans('+', dollars, ctx.author.name)
 
-  await ctx.send(embed = create_embed('Good in the World','Someone gave you some K-Bucks out of the kindness in their heart.', [{'name': 'Added to Account:', 'value': str(dollars), 'inline': True}]))
+  await ctx.send(embed = create_embed('Good in the World','Someone gave you some K-Bucks out of the kindness in their heart.',ctx.author.display_name, ctx.author.avatar_url, [{'name': 'Added to Account:', 'value': str(dollars), 'inline': True}]))
 
 @client.command()
 async def account(ctx):
@@ -115,50 +108,62 @@ async def account(ctx):
   bucks = companies.find_one({'ceo': ctx.author.name})['money']
 
   if bucks == 0:
-    await ctx.send(embed = create_embed('Account', str(bucks) + ' K-Bucks'))
+    await ctx.send(embed = create_embed('Account', str(bucks) + ' K-Bucks', ctx.author.display_name, ctx.author.avatar_url))
   if bucks > 0:
-    await ctx.send(embed = create_embed('Account', str(bucks) + ' K-Bucks', [{'name': 'Recent Transactions', 'value': "\n".join(recent[:2]), 'inline': True}]))
+    await ctx.send(embed = create_embed('Account', str(bucks) + ' K-Bucks', ctx.author.display_name, ctx.author.avatar_url, [{'name': 'Recent Transactions', 'value': "\n".join(recent[:2]), 'inline': True}]))
+
+@client.command()
+async def need(ctx):
+  author_idols = companies.find_one({'ceo': ctx.author.name})['idols']
+  author_idols.extend(idols)
+
+  query = {'ceo': ctx.author.name}
+  update = {'$set': {'idols': author_idols}}
+
+  companies.update_one(query, update)
+
+  await ctx.send('this is a temp message')
 
 @client.command()
 async def audition(ctx):
   ceo_trainees = companies.find_one({'ceo': ctx.author.name})['trainees']
-  
-  temp_idols = idols
 
-  #not deleting trainee out of temp_idols
-  for trainee in ceo_trainees:
-    if trainee in temp_idols:
-      temp_idols.remove(trainee)
+  true_idols = companies.find_one({'ceo': ctx.author.name})['idols']
+
+  #not deleting trainee out of author_idols
+  #for trainee in author_idols:
+    #if trainee in ceo_trainees:
+      #author_idols.remove(trainee)
 
   msg2 = 'There\'s no one left that wants to join your company.'
-  none_embed = create_embed('title', msg2)
+  none_embed = create_embed('title', msg2, ctx.author.display_name, ctx.author.avatar_url)
  
   num_to_select = 3
   
-  if len(temp_idols) == 2:
+  if len(true_idols) == 2:
     num_to_select = 2
-  elif len(temp_idols) == 1:
+  elif len(true_idols) == 1:
     num_to_select = 1
-  elif len(temp_idols) == 0:
+  elif len(true_idols) == 0:
     await ctx.send(embed = none_embed)
+    return
 
-  temp_idols = random.sample(temp_idols, num_to_select)
+  author_idols = random.sample(true_idols, num_to_select)
 
   iad = []
   idol_emojis = ['🌸', '🍑', '🦋']
 
-  #loop through temp_idols
-  for idol in temp_idols:
+  #loop through author_idols
+  for idol in author_idols:
     temp_iat = {
-      'name': idol_emojis[temp_idols.index(idol)] + ' ' + idol,
+      'name': idol_emojis[author_idols.index(idol)] + idol,
       'value': ', '.join(talents[idol]),
       'inline': True
     }
     iad.append(temp_iat)
 
   msg = 'Here\'s a list of the people that auditioned. Choose one to take in as a trainee.'
-  
-  idol_embed = create_embed('Auditionees', msg, iad)
+  idol_embed = create_embed('Auditionees', msg, ctx.author.display_name, ctx.author.avatar_url, iad)
   
   message = await ctx.send(embed = idol_embed)
   
@@ -178,22 +183,33 @@ async def audition(ctx):
   for idol in iad:
     if reaction[0].emoji == idol_emojis[iad.index(idol)]:
       my_trainee = iad[iad.index(idol)]['name'][1:]
+
+  query = {'ceo': ctx.author.name}
   
   ceo_trainees.append(my_trainee)
 
-  query = {'ceo': ctx.author.name}
-
   update = {'$set': {'trainees': ceo_trainees}}
-
   companies.update_one(query, update)
 
+  true_idols.remove(my_trainee)
+
+  update = {'$set': {'idols': true_idols}}
+  companies.update_one(query,update)
+  
   await message.delete()
 
   new_msg = my_trainee + ' has joined your company as a trainee.'
-  embed1 = create_embed('New Trainee', new_msg)
+  embed1 = create_embed('New Trainee', new_msg, ctx.author.display_name, ctx.author.avatar_url)
   await ctx.send(embed = embed1)
 
-# make it sends a picture of the idol you recruit inside the embed, ask parker for help
+# make it send a picture of the idol you recruit inside the embed, ask parker for help
+
+@client.command()
+async def commands(ctx):
+
+  embed = create_embed('Commands', 'A list of commands you can do and what each one does using this bot.', ctx.author.display_name, ctx.author.avatar_url, [{'name': '?startup', 'value': 'Allows you start your company.', 'inline': False}, {'name': '?free', 'value': 'Gives you a random amount of money.', 'inline': False}, {'name': '?account', 'value': 'Shows the money in you account and your recent transactions.', 'inline': False}, {'name': '?audition', 'value': 'Host an audition and add one of the auditionees to your company as a trainee.', 'inline': False}])
+
+  await ctx.send(embed=embed)
 
 my_secret = os.environ['TOKEN']
 client.run(my_secret)
