@@ -77,14 +77,15 @@ async def startup(ctx):
     company = {
       'ceo': ctx.author.name,
       'money': 0,
-      'trainees': [],
-      'idols': [],
+      'trainees': {},
+      'idols': idols,
       'recent_trans': []
     }
 
     companies.insert_one(company).inserted_id
     
     await ctx.send(embed = create_embed('Taking Off', 'Quite the entrepreneur, you are! Welcome to your new entertainment company, CEO ' + ctx.author.name + '.', ctx.author.display_name, ctx.author.avatar_url))
+
 
 @client.command()
 async def free(ctx):
@@ -129,22 +130,20 @@ async def audition(ctx):
   ceo_trainees = companies.find_one({'ceo': ctx.author.name})['trainees']
 
   true_idols = companies.find_one({'ceo': ctx.author.name})['idols']
-
-  #not deleting trainee out of author_idols
-  #for trainee in author_idols:
-    #if trainee in ceo_trainees:
-      #author_idols.remove(trainee)
+  
+  #make it so makes a confirm message that says how many k-bucks it costs to host an audition. 
+  #dont take out money if there are 0 idols in len(true_idols)
 
   msg2 = 'There\'s no one left that wants to join your company.'
   none_embed = create_embed('title', msg2, ctx.author.display_name, ctx.author.avatar_url)
- 
+
   num_to_select = 3
   
   if len(true_idols) == 2:
     num_to_select = 2
   elif len(true_idols) == 1:
     num_to_select = 1
-  elif len(true_idols) == 0:
+  if len(true_idols) == 0:
     await ctx.send(embed = none_embed)
     return
 
@@ -186,7 +185,7 @@ async def audition(ctx):
 
   query = {'ceo': ctx.author.name}
   
-  ceo_trainees.append(my_trainee)
+  ceo_trainees[my_trainee] = 0
 
   update = {'$set': {'trainees': ceo_trainees}}
   companies.update_one(query, update)
@@ -204,12 +203,14 @@ async def audition(ctx):
 
 # make it send a picture of the idol you recruit inside the embed, ask parker for help
 
-@client.command()
-async def commands(ctx):
+#@client.command()
+#async def train(ctx):
+  #make it so when you train an idol, it levels that idol up
 
-  embed = create_embed('Commands', 'A list of commands you can do and what each one does using this bot.', ctx.author.display_name, ctx.author.avatar_url, [{'name': '?startup', 'value': 'Allows you start your company.', 'inline': False}, {'name': '?free', 'value': 'Gives you a random amount of money.', 'inline': False}, {'name': '?account', 'value': 'Shows the money in you account and your recent transactions.', 'inline': False}, {'name': '?audition', 'value': 'Host an audition and add one of the auditionees to your company as a trainee.', 'inline': False}])
+  #it takes a certain amount of money (increasing the higher the current level)
+  
+  #figure out how to get levels in the database without messing up the audition command
 
-  await ctx.send(embed=embed)
 
 my_secret = os.environ['TOKEN']
 client.run(my_secret)
