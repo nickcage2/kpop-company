@@ -11,6 +11,10 @@ from commands.audition import audition
 from commands.train import train
 from commands.trainees import trainees
 from commands.help import help
+from commands.debut import debut
+from commands.updatecompanies import updatecompanies
+
+my_id = os.environ['myid']
 
 uri = os.environ['mongodb_uri']
 mongoDB = MongoClient(uri)
@@ -45,17 +49,6 @@ for line in lines:
   del idol_talents[0]
   idols.append(name)
   talents[name] = idol_talents[0].split(' ')
-
-for company in companies.find({}):
-  update = {'$set': {'idols': idols}}
-  companies.update_one(company, update)
-  new_idols = idols
-
-  for trainee in company['trainees'].keys():
-    new_idols.remove(trainee)
-    update = {'$set': {'idols': new_idols}}
-
-  companies.update_one(company, update)
 
 @client.event
 async def on_ready():
@@ -144,6 +137,9 @@ client.add_cog(trainees(client, companies, create_embed))
 
 client.add_cog(help(client, create_embed))
 
+client.add_cog(debut(client, companies, create_embed, talents))
+
+client.add_cog(updatecompanies(client, companies, idols, create_embed, my_id))
 
 my_secret = os.environ['TOKEN']
 client.run(my_secret)

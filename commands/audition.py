@@ -70,7 +70,7 @@ class audition(commands.Cog):
             return False
             
           try:
-            reaction = await self.client.wait_for('reaction_add', check = filter, timeout = 30)
+            reaction = await self.client.wait_for('reaction_add', check = filter, timeout = 10)
           
           except:
             await ctx.send(embed = self.create_embed('Tick Tock', 'You ran out of time.', ctx.author.display_name, ctx.author.avatar_url))
@@ -89,12 +89,17 @@ class audition(commands.Cog):
           self.companies.update_one(query, update)
 
           self.make_trans('-', dollars, ctx.author.name)
-
-          query = {'ceo': ctx.author.name}
           
           ceo_trainees[my_trainee] = 0
 
           update = {'$set': {'trainees': ceo_trainees}}
+          self.companies.update_one(query, update)
+
+          employees = self.companies.find_one({'ceo': ctx.author.name})['employees']
+
+          employees.append(my_trainee)
+
+          update = {'$set': {'employees': employees}}
           self.companies.update_one(query, update)
 
           true_idols.remove(my_trainee)

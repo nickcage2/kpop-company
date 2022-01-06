@@ -20,8 +20,14 @@ class startup(commands.Cog):
         'ceo': ctx.author.name,
         'money': 0,
         'trainees': {},
+        'employees': [],
         'idols': self.idols,
-        'recent_trans': []
+        'recent_trans': [],
+        'actors': {},
+        'groups': {},
+        'duos': {},
+        'soloists': {},
+        'bands': {}
       }
 
       self.companies.insert_one(company).inserted_id

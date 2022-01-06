@@ -18,7 +18,7 @@ class help(commands.Cog):
       'inline': True
     }, {
       'name': '\u200b',
-      'value': '\u200b',
+      'value': '\u200b\n\u200b',
       'inline': True
     }, {
       'name': '?account',
@@ -30,7 +30,7 @@ class help(commands.Cog):
       'inline': True
     }, {
       'name': '\u200b',
-      'value': '\u200b',
+      'value': '\u200b\n\n\u200b',
       'inline': True
     }, {
       'name': '?trainees',
@@ -45,8 +45,7 @@ class help(commands.Cog):
       'value': '\u200b',
       'inline': True
     }]
-
-    title = ""
+    
     desc = ""
     
-    await ctx.send(embed = self.create_embed(title, desc, ctx.author.display_name, ctx.author.avatar_url, fields))
+    await ctx.send(embed = self.create_embed('Help Menu', desc, ctx.author.display_name, ctx.author.avatar_url, fields))

@@ -34,15 +34,17 @@ class train(commands.Cog):
       groups.append(trainee[trainee.index('(')+1:-1])
       x.append(trainee.lower()[:trainee.index(" (")].replace(" ", ""))
       trainees_dict[trainee.lower().replace(" ", "")] = trainees[trainee]
-      
+
+    if target_trainee not in x:
+      await ctx.send(embed = self.create_embed('Error 404', 'You don\'t have a trainee by this name in your company.', ctx.author.display_name, ctx.author.avatar_url))
+
     if target_trainee in x:
       count = 0
       for trainee in trainees_dict:
         if trainee[:trainee.index("(")] == target_trainee:
           repeat_groups.append(groups[list(trainees_dict.keys()).index(trainee)])
           count+= 1
-        
-
+      
       if count > 1:
         emoji_list = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
         
