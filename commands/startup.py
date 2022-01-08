@@ -19,6 +19,7 @@ class startup(commands.Cog):
       company = {
         'ceo': ctx.author.name,
         'money': 0,
+        'recognition': 0,
         'trainees': {},
         'employees': [],
         'idols': self.idols,
@@ -27,7 +28,8 @@ class startup(commands.Cog):
         'groups': {},
         'duos': {},
         'soloists': {},
-        'bands': {}
+        'bands': {},
+        'promotion': {}
       }
 
       self.companies.insert_one(company).inserted_id

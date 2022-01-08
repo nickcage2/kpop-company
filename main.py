@@ -1,7 +1,6 @@
 import discord
 import os
 from discord.ext import commands
-import random
 from pymongo import MongoClient
 
 from commands.startup import startup
@@ -11,8 +10,11 @@ from commands.audition import audition
 from commands.train import train
 from commands.trainees import trainees
 from commands.help import help
-from commands.debut import debut
+from commands.debut.debut import debut
 from commands.updatecompanies import updatecompanies
+from commands.collect import collect
+
+#fix all the exceptions on the commands
 
 my_id = os.environ['myid']
 
@@ -72,6 +74,7 @@ def create_embed(title, desc, display_name, avatar_url, fields = []):
 async def confirmation(dollars, name, avatar_url, send, author_id):
   #ctx.author.display_name, ctx.author.avatar_url, ctx.send, ctx.author.id
   con_msg = 'Doing this will cost ' + str(dollars) + ' K-Bucks. Do you wish to continue?'
+  
   con_embed = create_embed('Confirm', con_msg, name, avatar_url, [{'name': '✅ Yes', 'value': 'Confirms the transaction.', 'inline': True}, {'name': '⛔ No', 'value': 'Cancels the transaction.', 'inline': True}])
 
   confirm = await send(embed=con_embed)
@@ -92,14 +95,14 @@ async def confirmation(dollars, name, avatar_url, send, author_id):
     
   if emojis[0].emoji == '⛔':
     await confirm.delete()
-    await send(embed=create_embed('Cancelled', 'The audition was cancelled.', name, avatar_url))
+    await send(embed=create_embed('Cancelled', 'The action was cancelled.', name, avatar_url))
     return False
     
   if emojis[0].emoji == '✅':
     await confirm.delete()
     if dollars > companies.find_one({'ceo': name})['money']:
       msg = 'You don\'t have enough K-Bucks to perform this transaction.'
-      broke_embed = create_embed ('You\'re Kinda Broke', msg, name, avatar_url)
+      broke_embed = create_embed('You\'re Kinda Broke', msg, name, avatar_url)
       
       await send(embed=broke_embed)
       
@@ -137,9 +140,11 @@ client.add_cog(trainees(client, companies, create_embed))
 
 client.add_cog(help(client, create_embed))
 
-client.add_cog(debut(client, companies, create_embed, talents))
+client.add_cog(debut(client, companies, create_embed, talents, confirmation, make_trans))
 
 client.add_cog(updatecompanies(client, companies, idols, create_embed, my_id))
+
+client.add_cog(collect(client, companies, create_embed, make_trans))
 
 my_secret = os.environ['TOKEN']
 client.run(my_secret)

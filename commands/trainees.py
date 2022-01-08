@@ -29,65 +29,86 @@ class trainees(commands.Cog):
       trainees10.append(list(trainees.keys())[ten])
       levels10.append(list(trainees.values())[ten])
       index+= 1
-    
+
+    msg = await ctx.send('**' + str(len(trainees)) + ' Trainees' + '**')
     def filter(reaction, user):
-          if (reaction.emoji == '▶️' or reaction.emoji == '◀️') and user.id == ctx.author.id:
+          if (reaction.emoji == '▶️' or reaction.emoji == '◀️') and user.id == ctx.author.id and reaction.message == msg:
             return True
           return False
     
     i = 0
     max = 10
+    
+    if len(trainees10) == 1 and len(trainees10[0]) < 9:
+      max = len(trainees10[0])
+
+    
+    num = 1
     while i <= cap:
+      
       desc = ''
       w = 0
       
       while w < max:
         
-        desc+= trainees10[i][w] + " : " + str(levels10[i][w]) + " ⭐\n\n"
+        desc+= str(levels10[i][w]) + " ⭐  :  " + trainees10[i][w] + "\n\n"
         w+= 1
         
       desc = desc[:-1]
-      print(desc)
-
-      msg = await ctx.send(embed = self.create_embed('Your Trainees:', desc, ctx.author.display_name, ctx.author.avatar_url))
+    
+      await msg.edit(embed = self.create_embed('Your Trainees:', desc, ctx.author.display_name, ctx.author.avatar_url).set_footer(text='Page: ' + str(num) + '/' + str(len(trainees10))))
 
       if i == 0:
-        await msg.add_reaction('▶️')
+        if max == 10 and len(trainees10) > 1:
+          await msg.add_reaction('◀️')
+          await msg.add_reaction('▶️')
 
-        try:
-          reaction = await self.client.wait_for('reaction_add', check = filter, timeout = 300)
-        except:
-          return
+          try:
+            reaction = await self.client.wait_for('reaction_add', check = filter, timeout = 300)
+          except:
+            return
 
-        if reaction[0].emoji == '▶️':
-          await msg.delete()
+
+          if reaction[0].emoji == '▶️':
+            await msg.remove_reaction(reaction[0].emoji, ctx.author)
+            i+= 1
+            num += 1
+            if i == len(trainees10) - 1:
+              max = len(trainees10[len(trainees10)-1])
+              continue
+            continue
+        else:
           i+= 1
           continue
+        
       
       elif i > 0 and i < len(trainees10) - 1:
-        await msg.add_reaction('◀️')
-        await msg.add_reaction('▶️')
+        if len(trainees10) > i:
 
-        try:
-          reaction = await self.client.wait_for('reaction_add', check = filter, timeout = 300)
-        except:
-          return
-          
-        if reaction[0].emoji == '▶️':
-          await msg.delete()
-          i+= 1
-
-          if i == len(trainees10) - 1:
-            max = len(trainees10[len(trainees10)-1])
+          try:
+            reaction = await self.client.wait_for('reaction_add', check = filter, timeout = 300)
+          except:
+            return
             
-          continue
+          if reaction[0].emoji == '▶️':
+            await msg.remove_reaction(reaction[0].emoji, ctx.author)
+            i+= 1
+            num +=1
+            if i == len(trainees10) - 1:
+              max = len(trainees10[len(trainees10)-1])
+              continue
+            continue
+            
+          else:
+            await msg.remove_reaction(reaction[0].emoji, ctx.author)
+            i-= 1
+            num-= 1
+            continue
         else:
-          await msg.delete()
-          i-= 1
+          i+= 1
           continue
         
       elif i == len(trainees10) - 1:
-        await msg.add_reaction('◀️')
 
         try:
           reaction = await self.client.wait_for('reaction_add', check = filter, timeout = 300)
@@ -95,7 +116,8 @@ class trainees(commands.Cog):
           return
 
         if reaction[0].emoji == '◀️':
-          await msg.delete()
+          await msg.remove_reaction(reaction[0].emoji, ctx.author)
           i-= 1
+          num-= 1
           max = 10
-          continue
+          continue   
