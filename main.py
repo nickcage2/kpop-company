@@ -2,7 +2,9 @@ import discord
 import os
 from discord.ext import commands
 from pymongo import MongoClient
-from Functions import confirmation, create_embed, make_trans
+from Functions.confirmation import confirmation
+from Functions.make_trans import make_trans
+from Functions.create_embed import create_embed
 
 from commands.startup import startup
 from commands.daily import daily
