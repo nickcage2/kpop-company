@@ -88,7 +88,7 @@ class debut(commands.Cog):
     i = 0
     max = 10
     num = 1
-    if len(trainees10) == 1 and len(trainees10[0]) < 9:
+    if len(trainees10) == 1 and len(trainees10[0]) < 10:
       max = len(trainees10[0])
 
     

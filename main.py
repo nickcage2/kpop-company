@@ -2,6 +2,7 @@ import discord
 import os
 from discord.ext import commands
 from pymongo import MongoClient
+from Functions import confirmation, create_embed, make_trans
 
 from commands.startup import startup
 from commands.daily import daily
@@ -57,72 +58,6 @@ async def on_ready():
   print('--------------')
   print('Bot is online.')
   print('--------------')
-  
-def create_embed(title, desc, display_name, avatar_url, fields = []): 
-  #[{'name':, 'value':, 'inline': True},{},{},etc]
-  #ctx.author.display_name, ctx.author.avatar_url,
-  embed = discord.Embed(title=title, description=desc,color=0xFF9C9C).set_author(name=display_name, icon_url=avatar_url)
-
-  for field in fields:
-    embed.add_field(
-      name = field['name'],
-      value = field['value'],
-      inline = field['inline'])
-
-  return embed
-
-async def confirmation(dollars, name, avatar_url, send, author_id):
-  #ctx.author.display_name, ctx.author.avatar_url, ctx.send, ctx.author.id
-  con_msg = 'Doing this will cost ' + str(dollars) + ' K-Bucks. Do you wish to continue?'
-  
-  con_embed = create_embed('Confirm', con_msg, name, avatar_url, [{'name': '✅ Yes', 'value': 'Confirms the transaction.', 'inline': True}, {'name': '⛔ No', 'value': 'Cancels the transaction.', 'inline': True}])
-
-  confirm = await send(embed=con_embed)
-  await confirm.add_reaction('✅')
-  await confirm.add_reaction('⛔')
-  
-  def emoji(reaction, user):
-    if reaction.emoji == '⛔' or reaction.emoji == '✅':
-      if user.id == author_id:
-        return True
-    return False
-    
-  try:
-    emojis = await client.wait_for('reaction_add', check= emoji, timeout = 10)
-  except:
-    await send(embed = create_embed('Tick Tock', 'You ran out of time.', name, avatar_url))
-    return 
-    
-  if emojis[0].emoji == '⛔':
-    await confirm.delete()
-    await send(embed=create_embed('Cancelled', 'The action was cancelled.', name, avatar_url))
-    return False
-    
-  if emojis[0].emoji == '✅':
-    await confirm.delete()
-    if dollars > companies.find_one({'ceo': name})['money']:
-      msg = 'You don\'t have enough K-Bucks to perform this transaction.'
-      broke_embed = create_embed('You\'re Kinda Broke', msg, name, avatar_url)
-      
-      await send(embed=broke_embed)
-      
-      return False
-
-    return True
-
-def make_trans(addorsub, money, author): 
-  # is either '+' or '-' 
-  #money is integer 
-  #author is ctx.author.name
-  recent = companies.find_one({'ceo': author})['recent_trans']
-
-  recent.insert(0, addorsub + ' ' + str(money))
-  if len(recent) == 3:
-    recent.pop(-1)
-
-  query = {'ceo': author}
-  update = {'$set': {'recent_trans': recent}}
-  companies.update_one(query, update)
 
 #cogs for all the commands
 
