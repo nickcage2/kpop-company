@@ -1,8 +1,7 @@
 import discord
 from Functions import create_embed
-from main import client, companies
 
-async def confirmation(dollars, name, avatar_url, send, author_id):
+async def confirmation(dollars, name, avatar_url, send, author_id, client, companies):
   #ctx.author.display_name, ctx.author.avatar_url, ctx.send, ctx.author.id
   con_msg = 'Doing this will cost ' + str(dollars) + ' K-Bucks. Do you wish to continue?'
   

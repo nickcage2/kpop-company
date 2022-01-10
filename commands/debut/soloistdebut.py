@@ -1,4 +1,4 @@
-from soloistpromotion import soloistpromotion
+from Functions import soloistpromotion
 
 async def soloistdebut(self, ctx, message, x, lower_x, trainees, recognition):
   await message.delete()

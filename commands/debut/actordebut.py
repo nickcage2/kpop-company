@@ -1,4 +1,4 @@
-from actorpromotion import actorpromotion
+from Functions.actorpromotion import actorpromotion
 
 async def actordebut(self, ctx, message, x, lower_x, trainees, recognition):
   await message.delete()
