@@ -1,5 +1,5 @@
 import discord
-import create_embed
+from Functions import create_embed
 from main import client, companies
 
 async def confirmation(dollars, name, avatar_url, send, author_id):
